@@ -24,7 +24,7 @@
 `mkdir support-bot && cd support-bot`
 
 ## 2. Скачайте необходимые файлы
-`git clone https://github.com/balbuto/telegram-support-bot.git`
+`git clone https://github.com/balbuto/tg-support-bot.git`
 
 ## 3. Создайте необходимые директории
 `mkdir -p data logs backups`
