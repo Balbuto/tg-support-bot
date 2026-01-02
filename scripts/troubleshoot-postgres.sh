@@ -15,7 +15,7 @@ if ! docker ps | grep -q "postgres"; then
     
     # Попытка запуска
     echo "🔄 Попытка запуска PostgreSQL..."
-    docker-compose -f docker-compose.prod.yml up -d postgres
+    docker compose -f docker-compose.yml up -d postgres
     
     sleep 5
     
@@ -24,12 +24,12 @@ if ! docker ps | grep -q "postgres"; then
         
         # Просмотр логов
         echo "📋 Логи последней попытки:"
-        docker-compose -f docker-compose.prod.yml logs postgres --tail=20
+        docker compose -f docker-compose.yml logs postgres --tail=20
         
         # Проверка конфигурации
         echo "📄 Проверка конфигурации:"
-        echo "  POSTGRES_PASSWORD установлен: $(grep -c "POSTGRES_PASSWORD" .env.production)"
-        echo "  Объем данных: $(docker volume ls | grep -c postgres_data_prod)"
+        echo "  POSTGRES_PASSWORD установлен: $(grep -c "POSTGRES_PASSWORD" .env)"
+        echo "  Объем данных: $(docker volume ls | grep -c postgres_data)"
         
         exit 1
     fi
@@ -40,7 +40,7 @@ echo "✅ Контейнер PostgreSQL запущен"
 # Проверка здоровья
 echo "🩺 Проверка здоровья PostgreSQL..."
 for i in {1..30}; do
-    if docker-compose -f docker-compose.prod.yml exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then
+    if docker compose -f docker-compose.yml exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then
         echo "✅ PostgreSQL готов к подключениям"
         break
     fi
@@ -50,15 +50,15 @@ for i in {1..30}; do
         
         # Просмотр логов
         echo "📋 Логи PostgreSQL:"
-        docker-compose -f docker-compose.prod.yml logs postgres --tail=30
+        docker compose -f docker-compose.yml logs postgres --tail=30
         
         # Проверка порта
         echo "🔌 Проверка порта 5432:"
-        docker port support_bot_postgres_prod
+        docker port support_bot_postgres
         
         # Проверка использования диска
         echo "💾 Использование диска:"
-        docker exec support_bot_postgres_prod df -h /var/lib/postgresql/data
+        docker exec support_bot_postgres df -h /var/lib/postgresql/data
         
         exit 1
     fi
@@ -69,7 +69,7 @@ done
 
 # Проверка подключения от бота
 echo "🔗 Проверка подключения от бота..."
-docker-compose -f docker-compose.prod.yml exec -T bot python -c "
+docker compose -f docker-compose.yml exec -T bot python -c "
 import sys
 try:
     import asyncio
@@ -103,10 +103,10 @@ else
     
     # Проверка сети
     echo "🌐 Проверка сети между контейнерами:"
-    docker-compose -f docker-compose.prod.yml exec postgres ping -c 2 bot
+    docker compose -f docker-compose.yml exec postgres ping -c 2 bot
     
     # Проверка таблиц
     echo "📋 Проверка таблиц в базе данных:"
-    docker-compose -f docker-compose.prod.yml exec postgres psql -U postgres -d support_bot -c "\dt" || \
+    docker compose -f docker-compose.yml exec postgres psql -U postgres -d support_bot -c "\dt" || \
     echo "  ❌ Не удалось подключиться к базе данных"
 fi
