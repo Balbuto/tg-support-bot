@@ -32,10 +32,13 @@
 ## 4. Создайте файл конфигурации
 `cp .env.example .env`
 
-## 5. Запустите бота
+## 5. Отредактируйте файл конфигурации
+`cp .env.example .env`
+
+## 6. Запустите бота
 `docker-compose up -d`
 
-## 6. Проверьте статус
+## 7. Проверьте статус
 `docker-compose ps`
 
 `docker-compose logs -f bot`
