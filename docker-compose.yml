@@ -10,8 +10,8 @@ services:
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
       TZ: ${TZ:-Europe/Moscow}
     volumes:
-      - postgres_data_prod:/var/lib/postgresql/data
-      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     networks:
@@ -38,17 +38,17 @@ services:
 
   bot:
     image: balbuto/tg-support-bot:latest
-    container_name: telegram_support_bot_prod
+    container_name: telegram_support_bot
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
     env_file:
-      - .env.production
+      - .env
     volumes:
-      - ./data/prod:/app/data:rw
-      - ./logs/prod:/app/logs:rw
-      - ./backups/prod:/app/backups:rw
+      - ./data:/app/data:rw
+      - ./logs:/app/logs:rw
+      - ./backups:/app/backups:rw
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
@@ -91,7 +91,7 @@ except Exception as e:
           cpus: '0.2'
 
 volumes:
-  postgres_data_prod:
+  postgres_data:
 
 networks:
   bot-network-prod:
