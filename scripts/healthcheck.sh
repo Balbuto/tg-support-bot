@@ -2,11 +2,11 @@
 echo "🔍 Проверка здоровья Telegram Support Bot..."
 
 # Проверка Docker контейнеров
-if docker-compose ps | grep -q "Up"; then
+if docker compose ps | grep -q "Up"; then
     echo "✅ Контейнеры запущены"
     
     # Проверка бота
-    if docker-compose exec -T bot python -c "
+    if docker compose exec -T bot python -c "
 import sys
 try:
     import asyncio
@@ -24,7 +24,7 @@ except:
     fi
     
     # Проверка PostgreSQL
-    if docker-compose exec postgres pg_isready -U postgres > /dev/null 2>&1; then
+    if docker compose exec postgres pg_isready -U postgres > /dev/null 2>&1; then
         echo "✅ PostgreSQL здоров"
     else
         echo "❌ Проблемы с PostgreSQL"
@@ -41,4 +41,4 @@ docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
 
 echo ""
 echo "📋 Последние ошибки:"
-docker-compose logs bot --tail=20 | grep -i "error\|exception" || echo "✅ Ошибок не найдено"
+docker compose logs bot --tail=20 | grep -i "error\|exception" || echo "✅ Ошибок не найдено"
