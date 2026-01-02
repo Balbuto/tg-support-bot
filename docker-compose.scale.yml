@@ -1,0 +1,103 @@
+x-bot-template: &bot-template
+  image: balbuto/tg-support-bot:latest
+  restart: unless-stopped
+  env_file:
+    - .env
+  volumes:
+    - ./data:/app/data
+    - ./logs:/app/logs
+    - ./logs/instance_${BOT_INSTANCE_NUM}:/app/logs/instance
+  environment:
+    - PYTHONUNBUFFERED=1
+    - REDIS_HOST=redis
+    - REDIS_PORT=6379
+    - INSTANCE_DATA_DIR=/app/data/instance_${BOT_INSTANCE_NUM}
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  networks:
+    - bot_network
+  command: >
+    sh -c "
+    mkdir -p /app/data/instance_${BOT_INSTANCE_NUM} &&
+    cp /app/data/settings.json /app/data/instance_${BOT_INSTANCE_NUM}/ 2>/dev/null || true &&
+    python main.py
+    "
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: support_bot_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: support_bot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bot_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: support_bot_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bot_network
+
+  bot-1:
+    <<: *bot-template
+    container_name: telegram_support_bot_1
+    environment:
+      - BOT_INSTANCE_ID=bot_1
+      - BOT_INSTANCE_NUM=1
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - INSTANCE_DATA_DIR=/app/data/instance_1
+
+  bot-2:
+    <<: *bot-template
+    container_name: telegram_support_bot_2
+    environment:
+      - BOT_INSTANCE_ID=bot_2
+      - BOT_INSTANCE_NUM=2
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - INSTANCE_DATA_DIR=/app/data/instance_2
+
+  bot-3:
+    <<: *bot-template
+    container_name: telegram_support_bot_3
+    environment:
+      - BOT_INSTANCE_ID=bot_3
+      - BOT_INSTANCE_NUM=3
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - INSTANCE_DATA_DIR=/app/data/instance_3
+
+networks:
+  bot_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
