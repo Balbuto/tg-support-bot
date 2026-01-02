@@ -30,7 +30,7 @@
 `git clone https://github.com/Balbuto/tg-support-bot.git`
 
 ## 3. Сделайте все дополнительные скрипты исполняемыми
-`mchmod +x scripts/*.sh`
+`chmod +x scripts/*.sh`
 
 ## 4. Запустите скрипт первоначальной настройки
 `./scripts/setup.sh`
