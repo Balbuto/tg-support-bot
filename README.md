@@ -43,7 +43,8 @@
 **Поддержка динамической загрузки настроек из файла data/settings.json**
 
 Для обновления используйте команду:
-`cd /opt/tg-support-bot && docker compose down && docker`compose pull && docker compose up -d`
+
+**cd /opt/tg-support-bot && docker compose down && docker compose pull && docker compose up -d**
 
 # 🚀 Быстрый старт
 
