@@ -1,0 +1,89 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: support_bot_postgres_prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+    command: >
+      postgres
+      -c config_file=/etc/postgresql/postgresql.conf
+      -c shared_preload_libraries=pg_stat_statements
+    networks:
+      - bot-network-prod
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  bot:
+    image: balbuto/tg-support-bot:latest
+    container_name: telegram_support_bot_prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env.production
+    volumes:
+      - ./data/prod:/app/data:rw
+      - ./logs/prod:/app/logs:rw
+      - ./backups/prod:/app/backups:rw
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=${TZ:-Europe/Moscow}
+    networks:
+      - bot-network-prod
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "10"
+        compress: "true"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.2'
+    healthcheck:
+      test: ["CMD", "python", "-c", "
+import sys
+try:
+    import asyncio
+    from database import db_manager
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(db_manager.connect())
+    sys.exit(0)
+except Exception as e:
+    print(f'Health check failed: {e}')
+    sys.exit(1)
+      "]
+      interval: 60s
+      timeout: 20s
+      retries: 3
+      start_period: 120s
+
+networks:
+  bot-network-prod:
+    driver: bridge
+
+volumes:
+  postgres_data_prod:
