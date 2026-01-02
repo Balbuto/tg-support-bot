@@ -4,29 +4,37 @@ services:
     container_name: support_bot_postgres_prod
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-support_bot}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme123}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+      TZ: ${TZ:-Europe/Moscow}
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
-      - ./postgresql.conf:/etc/postgresql/postgresql.conf
-    command: >
-      postgres
-      -c config_file=/etc/postgresql/postgresql.conf
-      -c shared_preload_libraries=pg_stat_statements
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
     networks:
       - bot-network-prod
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 30s
       timeout: 10s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 256M
+      retries: 5
+      start_period: 40s
+    command: >
+      postgres -c max_connections=100
+               -c shared_buffers=256MB
+               -c effective_cache_size=1GB
+               -c maintenance_work_mem=64MB
+               -c checkpoint_completion_target=0.9
+               -c wal_buffers=16MB
+               -c default_statistics_target=100
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   bot:
     image: balbuto/tg-support-bot:latest
@@ -46,22 +54,15 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - TZ=${TZ:-Europe/Moscow}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
     networks:
       - bot-network-prod
     logging:
       driver: "json-file"
       options:
-        max-size: "50m"
-        max-file: "10"
-        compress: "true"
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.5'
-        reservations:
-          memory: 128M
-          cpus: '0.2'
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "python", "-c", "
 import sys
@@ -77,13 +78,21 @@ except Exception as e:
     sys.exit(1)
       "]
       interval: 60s
-      timeout: 20s
+      timeout: 30s
       retries: 3
-      start_period: 120s
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.2'
+
+volumes:
+  postgres_data_prod:
 
 networks:
   bot-network-prod:
     driver: bridge
-
-volumes:
-  postgres_data_prod:
