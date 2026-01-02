@@ -31,10 +31,10 @@
 `mkdir -p data logs backups`
 
 ## 4. Создайте файл конфигурации
-`cp .env.example .env`
+`cp .env.example .env.production`
 
 ## 5. Отредактируйте файл конфигурации
-`nano .env`
+`nano .env.production`
 
 ## 6. Запустите бота
 `docker-compose up -d`
