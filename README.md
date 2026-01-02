@@ -125,33 +125,33 @@
 
 Запуск бота
 
-**docker-compose up -d**
+**docker compose up -d**
 
 Остановка бота
 
-**docker-compose down**
+**docker compose down**
 
 Перезапуск бота
 
-**docker-compose restart bot**
+**docker compose restart bot**
 
 Просмотр логов
 
-**docker-compose logs -f bot**
+**docker compose logs -f bot**
 
-**docker-compose logs --tail=100 bot**
+**docker compose logs --tail=100 bot**
 
-**docker-compose logs bot | grep ERROR**
+**docker compose logs bot | grep ERROR**
 
 Проверка статуса
 
-**docker-compose ps**
+**docker compose ps**
 
-**docker-compose images**
+**docker compose images**
 
 Обновление до последней версии
 
-**docker-compose pull && docker-compose up -d --force-recreate**
+**docker compose pull && docker compose up -d --force-recreate**
 
 # 📊 Мониторинг и обслуживание
 
@@ -209,7 +209,7 @@ scripts/restore.sh
 
 **Проверьте логи**
 
-docker-compose logs bot --tail=50
+docker compose logs bot --tail=50
 
 **Проверьте токен бота**
 
@@ -217,19 +217,19 @@ echo $BOT_TOKEN
 
 **Перезапустите с чистого листа**
 
-docker-compose down -v
+docker compose down -v
 
-docker-compose up -d
+docker compose up -d
 
 
 ### Проблема: Ошибки подключения к PostgreSQL
 **Проверьте статус PostgreSQL**
 
-docker-compose ps postgres
+docker compose ps postgres
 
 **Проверьте логи PostgreSQL**
 
-docker-compose logs postgres
+docker compose logs postgres
 
 **Проверьте доступность порта**
 
@@ -237,11 +237,11 @@ docker exec support_bot_postgres pg_isready -U postgres
 
 **Пересоздайте базу данных (заранее подготовьте резервную копию)**
 
-docker-compose down -v
+docker compose down -v
 
 rm -rf data/*
 
-docker-compose up -d
+docker compose up -d
 
 
 # ❓ FAQ
