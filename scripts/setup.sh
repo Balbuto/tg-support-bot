@@ -8,7 +8,7 @@ echo "📁 Создание структуры директорий..."
 mkdir -p scripts data logs backups
 
 # Создаем необходимые файлы если их нет
-if [ ! -f docker-compose.yml ]; then
+if [ ! -f docker compose.yml ]; then
     echo "📄 Создание docker-compose.yml..."
     curl -sSL https://raw.githubusercontent.com/balbuto/telegram-support-bot/main/docker-compose.yml -o docker-compose.yml
 fi
