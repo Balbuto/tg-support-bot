@@ -34,7 +34,7 @@
 `cp .env.example .env`
 
 ## 5. Отредактируйте файл конфигурации
-`cp .env.example .env`
+`nano .env`
 
 ## 6. Запустите бота
 `docker-compose up -d`
