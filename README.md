@@ -46,6 +46,11 @@
 
 **cd /opt/tg-support-bot && docker compose down && docker compose pull && docker compose up -d**
 
+Для запуска нескольких инстансов используйте команду:
+
+**docker compose -f docker-compose.scale.yml up -d**
+
+
 # 🚀 Быстрый старт
 
 ## 1. Установите необходимое для запуска Docker контейнеров
