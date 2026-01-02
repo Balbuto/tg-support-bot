@@ -35,24 +35,15 @@ if [ ! -f .env ]; then
     exit 1
 fi
 
-# Проверка синтаксиса .env файла
-echo "🔍 Проверка синтаксиса .env файла..."
-if ! source .env 2>/dev/null; then
-    echo "❌ Ошибка синтаксиса в .env файле"
-    echo "📋 Проверьте следующие моменты:"
-    echo "  1. Нет незакрытых кавычек"
-    echo "  2. Нет специальных символов без экранирования"
-    echo "  3. Каждая переменная на отдельной строке"
-    exit 1
-fi
-
-# Проверка обязательных переменных
-if [ -z "$BOT_TOKEN" ]; then
+# Проверка обязательных переменных без загрузки всего файла
+echo "🔍 Проверка обязательных переменных..."
+if ! grep -q "BOT_TOKEN=" .env || [ -z "$(grep "BOT_TOKEN=" .env | cut -d'=' -f2)" ]; then
     echo "❌ BOT_TOKEN не установлен в .env файле"
+    echo "💡 Получите токен у @BotFather в Telegram"
     exit 1
 fi
 
-if [ -z "$POSTGRES_PASSWORD" ]; then
+if ! grep -q "POSTGRES_PASSWORD=" .env || [ -z "$(grep "POSTGRES_PASSWORD=" .env | cut -d'=' -f2)" ]; then
     echo "⚠️  POSTGRES_PASSWORD не установлен, используется значение по умолчанию"
 fi
 
@@ -69,12 +60,7 @@ if [ ! -f scripts/init.sql ]; then
     exit 1
 fi
 
-echo "📊 Файл init.sql найден:"
-echo "  Размер: $(wc -l < scripts/init.sql) строк"
-echo "  Содержимое:"
-head -5 scripts/init.sql
-echo "  ..."
-tail -5 scripts/init.sql
+echo "📊 Файл init.sql найден"
 
 # Остановка существующих контейнеров
 echo "🛑 Остановка существующих контейнеров..."
@@ -93,14 +79,14 @@ $COMPOSE_CMD up -d
 echo ""
 echo "⏳ Ожидание запуска PostgreSQL..."
 for i in {1..30}; do
-    if $COMPOSE_CMD ps | grep -q "postgres.*Up"; then
+    if $COMPOSE_CMD ps 2>/dev/null | grep -q "postgres.*Up"; then
         echo "✅ PostgreSQL запущен"
         break
     fi
     if [ $i -eq 30 ]; then
         echo "❌ PostgreSQL не запустился за 60 секунд"
         echo "📋 Логи PostgreSQL:"
-        $COMPOSE_CMD logs postgres
+        $COMPOSE_CMD logs postgres 2>/dev/null || true
         exit 1
     fi
     echo "⏳ Ожидание... ($i/30)"
@@ -117,7 +103,7 @@ for i in {1..20}; do
     if [ $i -eq 20 ]; then
         echo "❌ PostgreSQL не готов к подключениям"
         echo "📋 Логи здоровья:"
-        $COMPOSE_CMD logs postgres --tail=20
+        $COMPOSE_CMD logs postgres --tail=20 2>/dev/null || true
         exit 1
     fi
     echo "⏳ Проверка готовности... ($i/20)"
@@ -127,7 +113,7 @@ done
 echo ""
 echo "🤖 Проверка запуска бота..."
 for i in {1..15}; do
-    if $COMPOSE_CMD ps | grep -q "bot.*Up"; then
+    if $COMPOSE_CMD ps 2>/dev/null | grep -q "bot.*Up"; then
         echo "✅ Бот запущен"
         break
     fi
@@ -169,7 +155,7 @@ except Exception as e:
 echo ""
 echo "📋 Итоговый статус:"
 echo "========================================="
-$COMPOSE_CMD ps
+$COMPOSE_CMD ps 2>/dev/null || echo "  Не удалось получить статус"
 echo "========================================="
 
 echo ""
