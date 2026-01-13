@@ -63,8 +63,8 @@
 ## 3. Скачайте необходимые файлы
 `git clone https://github.com/Balbuto/tg-support-bot.git`
 
-## 4. Сделайте все дополнительные скрипты исполняемыми
-`chmod +x scripts/*.sh`
+## 4. Перейдите в папку и с ботом и сделайте все дополнительные скрипты исполняемыми
+`cd /opt/tg-support-bot && chmod +x scripts/*.sh`
 
 ## 5. Запустите скрипт первоначальной настройки
 `./scripts/setup.sh`
